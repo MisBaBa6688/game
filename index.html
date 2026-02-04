@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>揮棒拚榮耀・力挺中華隊</title>
+    <style>
+        :root {
+            --primary-blue: #002D62;
+            --primary-red: #ED1C24;
+            --accent-gold: #FFD700;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background: var(--primary-blue);
+            color: white;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #001a3a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        /* 背景裝飾 */
+        .bg-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(237, 28, 36, 0.1) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 頂部標題 */
+        .header {
+            z-index: 10;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 10px;
+        }
+
+        /* 核心遊戲區 */
+        .game-area {
+            z-index: 10;
+            position: relative;
+            width: 250px;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bat-icon {
+            font-size: 100px;
+            transition: transform 0.1s ease-out;
+            filter: drop-shadow(0 0 20px var(--accent-gold));
+        }
+
+        .swing-anim {
+            animation: swing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes swing {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            50% {
+                transform: rotate(-90deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        /* 應援力顯示 */
+        .score-display {
+            z-index: 10;
+            text-align: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-val {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+            display: block;
+        }
+
+        .score-unit {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+
+        /* 按鈕區 */
+        .controls {
+            z-index: 10;
+            width: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-red), #ff4d4d);
+            color: white;
+            box-shadow: 0 10px 20px rgba(237, 28, 36, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 隱藏 Canvas 用於生成圖片 */
+        #posterCanvas {
+            display: none;
+        }
+
+        /* 提示授權層 */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="overlay">
+        <h2 style="color: var(--accent-gold)">準備好進入戰場了嗎？</h2>
+        <p>請允許存取「動作感測器」以進行揮棒互動</p>
+        <button class="btn btn-primary" onclick="requestPermission()">開始遊戲</button>
+    </div>
+
+    <div id="app">
+        <div class="bg-glow"></div>
+
+        <div class="header">
+            <p>【 VVIP 專屬 】</p>
+            <h1>揮棒拚榮耀</h1>
+            <p>中華隊加油！力挺奪冠！</p>
+        </div>
+
+        <div class="game-area">
+            <div id="bat" class="bat-icon">🏏</div>
+        </div>
+
+        <div class="score-display">
+            <span class="score-unit">當前應援力</span>
+            <span id="score" class="score-val">0</span>
+            <span class="score-unit">km/h</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="swingBtn">點擊或揮動手機揮棒！</button>
+            <button class="btn btn-secondary" onclick="generatePoster()">生成專屬應援海報</button>
+        </div>
+    </div>
+
+    <canvas id="posterCanvas" width="800" height="1200"></canvas>
+
+    <script>
+        let maxForce = 0;
+        let isPowering = false;
+
+        // 要求權限 (iOS 必備)
+        function requestPermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                            document.getElementById('overlay').style.display = 'none';
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // 非 iOS 或者是 HTTPS 下的 Android
+                window.addEventListener('devicemotion', handleMotion);
+                document.getElementById('overlay').style.display = 'none';
+            }
+        }
+
+        // 處理手機運動偵測
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            const force = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+
+            // 閾值判定：如果加速度超過 25，判定為揮棒
+            if (force > 25) {
+                doSwing(Math.floor(force * 5));
+            }
+        }
+
+        // 揮棒動作
+        function doSwing(val) {
+            const bat = document.getElementById('bat');
+            const scoreEl = document.getElementById('score');
+
+            if (bat.classList.contains('swing-anim')) return;
+
+            bat.classList.add('swing-anim');
+            setTimeout(() => bat.classList.remove('swing-anim'), 400);
+
+            // 隨機擾動讓數值更像真的
+            const finalVal = val + Math.floor(Math.random() * 20);
+            maxForce = Math.max(maxForce, finalVal);
+            scoreEl.innerText = finalVal;
+
+            // 觸覺反饋 (如果支援)
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
+
+        document.getElementById('swingBtn').onclick = () => doSwing(Math.floor(Math.random() * 50) + 100);
+
+        // 海報生成邏輯
+        function generatePoster() {
+            const canvas = document.getElementById('posterCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 1. 背景顏色
+            ctx.fillStyle = '#002D62';
+            ctx.fillRect(0, 0, 800, 1200);
+
+            // 2. 裝飾性漸層
+            const gradient = ctx.createRadialGradient(400, 600, 0, 400, 600, 800);
+            gradient.addColorStop(0, '#003a7d');
+            gradient.addColorStop(1, '#001a3a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 800, 1200);
+
+            // 3. 標題
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 80px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('揮棒拚榮耀・力挺中華隊', 400, 200);
+
+            // 4. 會員資訊 (模擬)
+            ctx.fillStyle = 'white';
+            ctx.font = '40px sans-serif';
+            ctx.fillText('我是 [VVIP 會員]', 400, 350);
+
+            // 5. 數據
+            ctx.fillStyle = '#ED1C24';
+            ctx.font = 'bold 150px sans-serif';
+            ctx.fillText(maxForce || '120', 400, 600);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '50px sans-serif';
+            ctx.fillText('km/h 應援力', 400, 700);
+
+            // 6. 底部內容
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.font = '30px sans-serif';
+            ctx.fillText('我已為中華隊注入最強戰力', 400, 900);
+
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 5;
+            ctx.strokeRect(50, 50, 700, 1100);
+
+            // 轉成圖片並下載 (在 LINE 內會建議長按存圖)
+            const imgData = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = '中華隊加油海報.png';
+            link.href = imgData;
+            link.click();
+
+            alert('海報已生成！在 LINE 中請長按圖片儲存並分享到朋友圈！');
+        }
+    </script>
+</body>
+
+</html>
