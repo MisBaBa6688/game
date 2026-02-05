@@ -4,14 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>揮棒拚榮耀・力挺中華隊</title>
+    <title>揮棒拚榮耀・力挺中華隊！</title>
     <style>
         :root {
-            --primary-blue: #002D62;
-            --primary-red: #ED1C24;
-            --accent-gold: #FFD700;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
+            --primary-blue: #0b2e63;
+            --primary-red: #d90429;
+            --accent-gold: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body,
@@ -20,326 +23,505 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            background: var(--primary-blue);
-            color: white;
+            font-family: 'Microsoft JhengHei', 'Heiti TC', sans-serif;
+            background: #111;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        #app {
+        /* --- 視覺系統 (Fixed 9:16 Container) --- */
+        #stage-container {
             position: relative;
-            width: 100%;
-            height: 100%;
-            max-width: 500px;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #001a3a 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 40px 20px;
-            box-sizing: border-box;
-        }
-
-        /* 背景裝飾 */
-        .bg-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 150%;
-            height: 150%;
-            background: radial-gradient(circle, rgba(237, 28, 36, 0.1) 0%, transparent 70%);
+            background: #000;
+            overflow: hidden;
             z-index: 0;
-            pointer-events: none;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+
+            height: 100%;
+            aspect-ratio: 9 / 16;
+            width: auto;
+            max-width: 100%;
+            max-height: 100vh;
         }
 
-        /* 頂部標題 */
-        .header {
-            z-index: 10;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            background: linear-gradient(to bottom, #fff, var(--accent-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            letter-spacing: 2px;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 10px;
-        }
-
-        /* 核心遊戲區 */
-        .game-area {
-            z-index: 10;
-            position: relative;
-            width: 250px;
-            height: 250px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .bat-icon {
-            font-size: 100px;
-            transition: transform 0.1s ease-out;
-            filter: drop-shadow(0 0 20px var(--accent-gold));
-        }
-
-        .swing-anim {
-            animation: swing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes swing {
-            0% {
-                transform: rotate(0deg);
+        @supports not (aspect-ratio: 9 / 16) {
+            #stage-container {
+                width: 56.25vh;
+                height: 100vh;
             }
 
-            50% {
-                transform: rotate(-90deg) scale(1.2);
-            }
-
-            100% {
-                transform: rotate(0deg);
+            @media (max-aspect-ratio: 9/16) {
+                #stage-container {
+                    width: 100vw;
+                    height: 177.78vw;
+                }
             }
         }
 
-        /* 應援力顯示 */
-        .score-display {
-            z-index: 10;
-            text-align: center;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            padding: 20px 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .score-val {
-            font-size: 3.5rem;
-            font-weight: bold;
-            color: var(--accent-gold);
-            display: block;
-        }
-
-        .score-unit {
-            font-size: 1rem;
-            opacity: 0.7;
-        }
-
-        /* 按鈕區 */
-        .controls {
-            z-index: 10;
-            width: 100%;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, var(--primary-red), #ff4d4d);
-            color: white;
-            box-shadow: 0 10px 20px rgba(237, 28, 36, 0.3);
-        }
-
-        .btn-primary:active {
-            transform: scale(0.95);
-        }
-
-        .btn-secondary {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: white;
-            backdrop-filter: blur(5px);
-        }
-
-        /* 隱藏 Canvas 用於生成圖片 */
-        #posterCanvas {
-            display: none;
-        }
-
-        /* 提示授權層 */
-        #overlay {
-            position: fixed;
+        .bg-img {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 100;
+            object-fit: contain;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .bg-img {
+            object-fit: cover;
+        }
+
+
+        #bg-start {
+            opacity: 1;
+        }
+
+        #bg-hit {
+            opacity: 0;
+        }
+
+        #bg-end {
+            opacity: 0;
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.6) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .stage.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #stage-1 {
+            padding: 0;
+            justify-content: center;
+        }
+
+        .cta-btn {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: transparent;
+            cursor: pointer;
+            z-index: 20;
+            opacity: 0;
+        }
+
+        .listening-indicator {
+            position: absolute;
+            bottom: 5%;
+            color: var(--accent-gold);
+            font-size: 1.2rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            text-shadow: 0 0 5px #000;
+            font-weight: bold;
+        }
+
+        #stage-4 {
+            /* UPDATE: Fine-tuned to 32% to clear footer text perfectly */
+            justify-content: flex-end;
+            padding-bottom: 32%;
+        }
+
+        .result-window {
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 5% 5%;
             text-align: center;
-            padding: 30px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            border: 4px solid var(--accent-gold);
+            transform: scale(0.9);
+            opacity: 0;
+            animation: pop-in 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards 0.5s;
+        }
+
+        .result-speed-label {
+            font-size: 1.4rem;
+            color: #333;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .result-speed-val {
+            font-size: 6rem;
+            background: linear-gradient(180deg, #d90429, #000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            line-height: 1;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-retry {
+            margin-top: 20px;
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.4rem;
+            border-radius: 50px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes pop-in {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div id="overlay">
-        <h2 style="color: var(--accent-gold)">準備好進入戰場了嗎？</h2>
-        <p>請允許存取「動作感測器」以進行揮棒互動</p>
-        <button class="btn btn-primary" onclick="requestPermission()">開始遊戲</button>
+    <div id="stage-container">
+        <img src="https://duk.tw/Sl7UNW.jpg" class="bg-img" id="bg-start" alt="Start Background"
+            referrerpolicy="no-referrer">
+        <img src="https://duk.tw/Boy3jT.jpg" class="bg-img" id="bg-hit" alt="Hit Background"
+            referrerpolicy="no-referrer">
+        <img src="https://duk.tw/FeHfIG.jpg" class="bg-img" id="bg-end" alt="End Background"
+            referrerpolicy="no-referrer">
+
+        <div class="vignette"></div>
+        <canvas id="particles"></canvas>
+        <div id="flash-overlay"
+            style="position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:99;opacity:0;pointer-events:none;">
+        </div>
+
+        <div id="stage-1" class="stage active">
+            <button class="cta-btn" id="start-btn" onclick="activateGame()">Start Trigger</button>
+            <div class="listening-indicator" id="listen-msg">偵測中...請用力揮棒！</div>
+        </div>
+
+        <div id="stage-4" class="stage">
+            <div class="result-window">
+                <div
+                    style="font-size: 2.5rem; color: #d90429; font-weight: 900; margin-bottom: 15px; text-shadow: 2px 2px 0 #fff, 0 0 20px rgba(217,4,41,0.6);">
+                    全壘打!!</div>
+                <div class="result-speed-label">擊球速度</div>
+                <div class="result-speed-val" id="speed-display">168</div>
+                <div style="font-size:2rem; color:#d90429; font-weight:900; margin-bottom: 20px;">KM/H</div>
+                <button class="btn-retry" onclick="location.reload()">再揮一次</button>
+            </div>
+        </div>
     </div>
-
-    <div id="app">
-        <div class="bg-glow"></div>
-
-        <div class="header">
-            <p>【 VVIP 專屬 】</p>
-            <h1>揮棒拚榮耀</h1>
-            <p>中華隊加油！力挺奪冠！</p>
-        </div>
-
-        <div class="game-area">
-            <div id="bat" class="bat-icon">🏏</div>
-        </div>
-
-        <div class="score-display">
-            <span class="score-unit">當前應援力</span>
-            <span id="score" class="score-val">0</span>
-            <span class="score-unit">km/h</span>
-        </div>
-
-        <div class="controls">
-            <button class="btn btn-primary" id="swingBtn">點擊或揮動手機揮棒！</button>
-            <button class="btn btn-secondary" onclick="generatePoster()">生成專屬應援海報</button>
-        </div>
-    </div>
-
-    <canvas id="posterCanvas" width="800" height="1200"></canvas>
 
     <script>
-        let maxForce = 0;
-        let isPowering = false;
+        // --- High-Fidelity Procedural Audio Engine (Space + BGM) ---
+        const AudioSys = {
+            ctx: null,
+            masterGain: null,
+            reverbNode: null,
+            bgmNodes: [],
+            isBgmPlaying: false,
 
-        // 要求權限 (iOS 必備)
-        function requestPermission() {
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            window.addEventListener('devicemotion', handleMotion);
-                            document.getElementById('overlay').style.display = 'none';
-                        }
-                    })
-                    .catch(console.error);
-            } else {
-                // 非 iOS 或者是 HTTPS 下的 Android
-                window.addEventListener('devicemotion', handleMotion);
-                document.getElementById('overlay').style.display = 'none';
+            init: function () {
+                try {
+                    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.connect(this.ctx.destination);
+
+                    // Create Stadium Reverb (Impulse Response)
+                    this.reverbNode = this.ctx.createConvolver();
+                    this.reverbNode.buffer = this.createImpulseResponse(2.5, 2.0); // Large hall
+                    this.reverbNode.connect(this.masterGain);
+                } catch (e) { console.error("Audio Init Fail", e); }
+            },
+
+            createImpulseResponse: function (duration, decay) {
+                const rate = this.ctx.sampleRate;
+                const length = rate * duration;
+                const impulse = this.ctx.createBuffer(2, length, rate);
+                const left = impulse.getChannelData(0);
+                const right = impulse.getChannelData(1);
+
+                for (let i = 0; i < length; i++) {
+                    const n = i / length;
+                    // Exponential decay noise
+                    const vol = Math.pow(1 - n, decay);
+                    left[i] = (Math.random() * 2 - 1) * vol;
+                    right[i] = (Math.random() * 2 - 1) * vol;
+                }
+                return impulse;
+            },
+
+            // BGM: Stadium "Stomp-Stomp-Clap" Tension Beat
+            startBGM: function () {
+                if (this.isBgmPlaying || !this.ctx) return;
+                this.isBgmPlaying = true;
+                this.scheduleBeat(this.ctx.currentTime);
+
+                // Tension Drone
+                const drone = this.ctx.createOscillator();
+                drone.type = 'triangle';
+                drone.frequency.value = 55; // Low
+                const g = this.ctx.createGain();
+                g.gain.value = 0.15;
+                drone.connect(g);
+                g.connect(this.masterGain);
+                drone.start();
+                this.bgmNodes.push(drone);
+            },
+
+            scheduleBeat: function (startTime) {
+                if (!this.isBgmPlaying) return;
+                const beatLen = 0.8; // Faster pace
+
+                // Rhythm: Boom (0) ... Boom (0.2) ... (Wait) ... 
+                this.playDrum(startTime, 100, 0.8);
+                this.playDrum(startTime + 0.25, 80, 0.6);
+
+                setTimeout(() => {
+                    if (this.isBgmPlaying) this.scheduleBeat(this.ctx.currentTime);
+                }, beatLen * 1000);
+            },
+
+            playDrum: function (time, freq, vol) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.frequency.setValueAtTime(freq, time);
+                osc.frequency.exponentialRampToValueAtTime(10, time + 0.3);
+
+                gain.gain.setValueAtTime(vol, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+
+                // Send nicely to reverb
+                const send = this.ctx.createGain();
+                send.gain.value = 0.3;
+                gain.connect(send);
+                send.connect(this.reverbNode);
+
+                osc.start(time); osc.stop(time + 0.35);
+            },
+
+            stopBGM: function () {
+                this.isBgmPlaying = false;
+                this.bgmNodes.forEach(n => { try { n.stop() } catch (e) { } });
+                this.bgmNodes = [];
+            },
+
+            // SFX: Layered "CRACK"
+            playCrack: function () {
+                if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                // Sharp Snap
+                const osc = this.ctx.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.linearRampToValueAtTime(100, t + 0.05);
+                const g = this.ctx.createGain();
+                g.gain.setValueAtTime(1, t);
+                g.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+
+                osc.connect(g); g.connect(this.masterGain);
+
+                // Reverb heavy hit
+                const rSend = this.ctx.createGain();
+                rSend.gain.value = 0.8;
+                g.connect(rSend);
+                rSend.connect(this.reverbNode);
+
+                osc.start(t); osc.stop(t + 0.1);
+            },
+
+            // SFX: Stereo Crowd
+            playCheer: function () {
+                if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                for (let i = 0; i < 2; i++) { // Stereo
+                    const bufSize = 2 * this.ctx.sampleRate;
+                    const buffer = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let j = 0; j < bufSize; j++) data[j] = Math.random() * 2 - 1;
+
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 800 + Math.random() * 400;
+                    filter.Q.value = 1;
+
+                    const panner = this.ctx.createStereoPanner();
+                    panner.pan.value = (i == 0) ? -0.6 : 0.6;
+
+                    const gain = this.ctx.createGain();
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.5, t + 0.5);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 3.5);
+
+                    noise.connect(filter);
+                    filter.connect(panner);
+                    panner.connect(gain);
+                    gain.connect(this.masterGain);
+                    noise.start(t);
+                }
+            }
+        };
+
+        // --- Logic ---
+        let isListening = false;
+        let hasHit = false;
+
+        function activateGame() {
+            AudioSys.init();
+            if (AudioSys.ctx && AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
+
+            // Start BGM
+            AudioSys.startBGM();
+
+            document.getElementById('start-btn').style.display = 'none';
+            const msg = document.getElementById('listen-msg');
+            msg.style.opacity = 0.8;
+            msg.innerHTML = "偵測中...手機握緊用力揮！";
+
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(r => {
+                    if (r === 'granted') startSensor();
+                    else alert("需授權使用傳感器");
+                });
+            } else { startSensor(); }
+        }
+
+        function startSensor() {
+            isListening = true;
+            document.body.onclick = (e) => {
+                if (isListening && !hasHit && e.target.tagName !== 'BUTTON') {
+                    triggerImpact(Math.floor(Math.random() * 20 + 150));
+                }
+            };
+
+            window.addEventListener('devicemotion', ev => {
+                if (!isListening || hasHit) return;
+                const acc = ev.accelerationIncludingGravity;
+                if (!acc) return;
+                const f = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+                if (f > 30) {
+                    triggerImpact(Math.floor(f * 5));
+                }
+            });
+        }
+
+        function triggerImpact(val) {
+            hasHit = true;
+            isListening = false;
+
+            AudioSys.stopBGM();
+            AudioSys.playCrack();
+
+            const gl = document.getElementById('flash-overlay');
+            gl.style.opacity = '1';
+            gl.style.transition = 'opacity 0.05s';
+            setTimeout(() => { gl.style.opacity = '0'; gl.style.transition = 'opacity 0.5s'; }, 100);
+
+            document.getElementById('stage-1').classList.remove('active');
+            document.getElementById('bg-start').style.opacity = 0;
+            document.getElementById('bg-hit').style.opacity = 1;
+
+            setTimeout(() => {
+                showResult(val);
+            }, 1000);
+        }
+
+        function showResult(val) {
+            AudioSys.playCheer();
+
+            document.getElementById('bg-hit').style.opacity = 0;
+            document.getElementById('bg-end').style.opacity = 1;
+
+            document.getElementById('stage-4').classList.add('active');
+
+            let displaySpeed = val;
+            if (displaySpeed < 100) displaySpeed = 100 + Math.floor(Math.random() * 30);
+            if (displaySpeed > 170) displaySpeed = 168 + Math.floor(Math.random() * 4);
+            document.getElementById('speed-display').innerText = displaySpeed;
+        }
+
+        // --- Particles ---
+        const cvs = document.getElementById('particles');
+        const cx = cvs.getContext('2d');
+        let w, h;
+        function resize() {
+            const container = document.getElementById('stage-container');
+            if (container) {
+                w = cvs.width = container.clientWidth;
+                h = cvs.height = container.clientHeight;
             }
         }
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 100);
 
-        // 處理手機運動偵測
-        function handleMotion(event) {
-            const acc = event.accelerationIncludingGravity;
-            const force = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-
-            // 閾值判定：如果加速度超過 25，判定為揮棒
-            if (force > 25) {
-                doSwing(Math.floor(force * 5));
-            }
+        const parts = [];
+        for (let i = 0; i < 50; i++) parts.push({
+            x: Math.random() * 400, y: Math.random() * 800,
+            s: Math.random() * 3, vx: Math.random() * 0.5 - 0.25, vy: Math.random() * 0.5 - 0.25, a: Math.random()
+        });
+        function anim() {
+            if (!w) resize();
+            cx.clearRect(0, 0, w, h);
+            parts.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0) p.x = w; if (p.x > w) p.x = 0; if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+                p.a += (Math.random() - 0.5) * 0.05;
+                if (p.a < 0) p.a = 0; if (p.a > 1) p.a = 1;
+                cx.fillStyle = `rgba(255,215,0,${p.a * 0.6})`;
+                cx.beginPath(); cx.arc(p.x, p.y, p.s, 0, 7); cx.fill();
+            });
+            requestAnimationFrame(anim);
         }
-
-        // 揮棒動作
-        function doSwing(val) {
-            const bat = document.getElementById('bat');
-            const scoreEl = document.getElementById('score');
-
-            if (bat.classList.contains('swing-anim')) return;
-
-            bat.classList.add('swing-anim');
-            setTimeout(() => bat.classList.remove('swing-anim'), 400);
-
-            // 隨機擾動讓數值更像真的
-            const finalVal = val + Math.floor(Math.random() * 20);
-            maxForce = Math.max(maxForce, finalVal);
-            scoreEl.innerText = finalVal;
-
-            // 觸覺反饋 (如果支援)
-            if (navigator.vibrate) navigator.vibrate(100);
-        }
-
-        document.getElementById('swingBtn').onclick = () => doSwing(Math.floor(Math.random() * 50) + 100);
-
-        // 海報生成邏輯
-        function generatePoster() {
-            const canvas = document.getElementById('posterCanvas');
-            const ctx = canvas.getContext('2d');
-
-            // 1. 背景顏色
-            ctx.fillStyle = '#002D62';
-            ctx.fillRect(0, 0, 800, 1200);
-
-            // 2. 裝飾性漸層
-            const gradient = ctx.createRadialGradient(400, 600, 0, 400, 600, 800);
-            gradient.addColorStop(0, '#003a7d');
-            gradient.addColorStop(1, '#001a3a');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 800, 1200);
-
-            // 3. 標題
-            ctx.fillStyle = '#FFD700';
-            ctx.font = 'bold 80px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('揮棒拚榮耀・力挺中華隊', 400, 200);
-
-            // 4. 會員資訊 (模擬)
-            ctx.fillStyle = 'white';
-            ctx.font = '40px sans-serif';
-            ctx.fillText('我是 [VVIP 會員]', 400, 350);
-
-            // 5. 數據
-            ctx.fillStyle = '#ED1C24';
-            ctx.font = 'bold 150px sans-serif';
-            ctx.fillText(maxForce || '120', 400, 600);
-
-            ctx.fillStyle = 'white';
-            ctx.font = '50px sans-serif';
-            ctx.fillText('km/h 應援力', 400, 700);
-
-            // 6. 底部內容
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.font = '30px sans-serif';
-            ctx.fillText('我已為中華隊注入最強戰力', 400, 900);
-
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = 5;
-            ctx.strokeRect(50, 50, 700, 1100);
-
-            // 轉成圖片並下載 (在 LINE 內會建議長按存圖)
-            const imgData = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = '中華隊加油海報.png';
-            link.href = imgData;
-            link.click();
-
-            alert('海報已生成！在 LINE 中請長按圖片儲存並分享到朋友圈！');
-        }
+        anim();
     </script>
 </body>
 
